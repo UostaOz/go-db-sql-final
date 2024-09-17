@@ -101,7 +101,7 @@ func main() {
 	db, err := sql.Open("sqlite", "tracker.db")
 	if err != nil {
 		fmt.Println(err)
-		db.Close()
+		return
 	}
 	defer db.Close()
 	store := NewParcelStore(db) // создайте объект ParcelStore функцией NewParcelStore

@@ -165,7 +165,8 @@ func TestGetByClient(t *testing.T) {
 	// check
 
 	for _, parcel := range storedParcels {
-		assert.NotEmpty(t, parcelMap[parcel.Number]) // убедитесь, что все посылки из storedParcels есть в parcelMap
+		_, ok := parcelMap[parcel.Number]
+		require.True(t, ok) // убедитесь, что все посылки из storedParcels есть в parcelMap
 
 		require.Equal(t, parcel, parcelMap[parcel.Number]) // убедитесь, что значения полей полученных посылок заполнены верно
 	}
