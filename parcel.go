@@ -2,8 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"errors"
-	"fmt"
 )
 
 type ParcelStore struct {
@@ -53,6 +51,7 @@ func (s ParcelStore) GetByClient(client int) ([]Parcel, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 	var row Parcel
 	for rows.Next() {
 
@@ -61,6 +60,10 @@ func (s ParcelStore) GetByClient(client int) ([]Parcel, error) {
 			return nil, err
 		}
 		p = append(p, row)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
 	}
 	return p, nil
 }
@@ -78,21 +81,11 @@ func (s ParcelStore) SetStatus(number int, status string) error {
 
 // Обновление адреса в таблице parcel, изменение доступно только при статусе registered
 func (s ParcelStore) SetAddress(number int, address string) error {
-	var status string
-	row := s.db.QueryRow("select status from parcel where number =:num",
-		sql.Named("num", number))
 
-	err := row.Scan(&status)
-	if err != nil {
-		return err
-	}
-	if ParcelStatusRegistered != status {
-		return fmt.Errorf("Wrong status!")
-	}
-
-	_, err = s.db.Exec("update parcel set address=:address where number=:num",
+	_, err := s.db.Exec("update parcel set address=:address where number=:num and status=:status",
 		sql.Named("address", address),
-		sql.Named("num", number))
+		sql.Named("num", number),
+		sql.Named("status", ParcelStatusRegistered))
 	if err != nil {
 		return err
 	}
@@ -101,19 +94,10 @@ func (s ParcelStore) SetAddress(number int, address string) error {
 
 // Удаление определенной строки в таблице parcel по number, удаление доступно только при статусе registered
 func (s ParcelStore) Delete(number int) error {
-	var status string
-	row := s.db.QueryRow("select status from parcel where number =:num",
-		sql.Named("num", number))
 
-	err := row.Scan(&status)
-	if err != nil {
-		return err
-	}
-	if status != ParcelStatusRegistered {
-		return errors.New("Wrong status!")
-	}
-
-	_, err = s.db.Exec("delete from parcel where number=:num", sql.Named("num", number))
+	_, err := s.db.Exec("delete from parcel where number=:num and status=:status",
+		sql.Named("num", number),
+		sql.Named("status", ParcelStatusRegistered))
 	if err != nil {
 		return err
 	}

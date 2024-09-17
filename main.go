@@ -101,10 +101,11 @@ func main() {
 	db, err := sql.Open("sqlite", "tracker.db")
 	if err != nil {
 		fmt.Println(err)
+		db.Close()
 	}
+	defer db.Close()
 	store := NewParcelStore(db) // создайте объект ParcelStore функцией NewParcelStore
 	service := NewParcelService(store)
-	defer db.Close()
 	// регистрация посылки
 	client := 1
 	address := "Псков, д. Пушкина, ул. Колотушкина, д. 5"
